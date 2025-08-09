@@ -1,12 +1,10 @@
 package br.com.lessa.financialcontrol.service;
 
-import br.com.lessa.financialcontrol.dto.UserDTO;
+import br.com.lessa.financialcontrol.dto.UserRequest;
 import br.com.lessa.financialcontrol.entity.User;
 import br.com.lessa.financialcontrol.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,34 +13,32 @@ public class UserService {
 
     private UserRepository userRepository;
 
-    public UserDTO createUser(UserDTO userDTO){
+    public UserRequest createUser(UserRequest userDTO) {
 
-        User userEntity = User.builder().fullname(userDTO.fullname())
-                .username(userDTO.username())
-                .roles(userDTO.roles())
+        User userEntity = User.builder()
+                .login(userDTO.login())
+                .password(userDTO.password())
+                .role(userDTO.role())
                 .build();
 
-        User savedUser = userRepository.save(userEntity);
+        var userSaved = userRepository.save(userEntity);
 
-        return mapToDto(savedUser);
+        return mapToResponse(userSaved);
     }
 
-    public Page<UserDTO> getAllUsers(Pageable pageable){
-        Page<User> usersPage = userRepository.findAll(pageable);
+    public UserRequest getUser(String id){
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
 
-        return usersPage.map(this::mapToDto);
+        return mapToResponse(user);
     }
 
-    public UserDTO getUser(Long id){
-        return mapToDto(userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found")));
-    }
-
-    private UserDTO mapToDto(User user) {
-        return UserDTO.builder()
+    private UserRequest mapToResponse(User user){
+        return UserRequest.builder()
                 .id(user.getId())
-                .username(user.getUsername())
-                .fullname(user.getFullname())
-                .roles(user.getRoles())
+                .login(user.getLogin())
+                .role(user.getRole())
                 .build();
     }
 }
+
