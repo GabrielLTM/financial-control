@@ -20,6 +20,7 @@ public class UserController {
 
         var response = UserResponse.builder()
                 .id(userResponse.id())
+                .name(userResponse.name())
                 .login(userResponse.login())
                 .role(userResponse.role())
                 .build();
